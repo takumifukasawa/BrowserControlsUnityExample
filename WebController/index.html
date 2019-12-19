@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>BrowserControlsUnityExample - WebController</title>
+  <style>
+    #wrapper {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+    }
+    canvas {
+      display: block;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="wrapper">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/7.6.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.0/firebase-database.js"></script>
+
+  <script>
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "xxxxx",
+      authDomain: "xxxxx",
+      databaseURL: "xxxxx",
+      projectId: "xxxxx",
+      storageBucket: "xxxxx",
+      messagingSenderId: "xxxxx",
+      appId: "xxxxx"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    const ref = firebase.database().ref("coords");
+
+    const wrapper = document.getElementById("wrapper");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    let wrapperWidth;
+    let wrapperHeight;
+
+    const coords = [];
+
+    function onWindowResize() {
+      wrapperWidth = wrapper.offsetWidth;
+      wrapperHeight = wrapper.offsetHeight;
+      aspect = wrapperWidth / wrapperHeight;
+      canvas.width = wrapperWidth;
+      canvas.height = wrapperHeight;
+    }
+
+    function tick() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+      ctx.fillRect(0, 0, wrapperWidth, wrapperHeight);
+      let i = coords.length;
+      while(i--) {
+        const coord = coords[coords.length - (i + 1)];
+        ctx.fillStyle = "rgb(255, 255, 255)";
+        ctx.beginPath();
+        ctx.arc(coord.x, coord.y, 40, 0, Math.PI * 2, true);
+        ctx.fill();
+        ctx.closePath();
+        coords.splice(i, 1);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    canvas.addEventListener("touchmove", (e) => {
+      const touch = e.touches[0];
+      const { clientX, clientY } = touch;
+      const normalizedCoord = {
+        x: (clientX / wrapperWidth) * 2 - 1,
+        y: (clientY / wrapperHeight) * 2 - 1,
+      };
+      ref.set(normalizedCoord);
+      coords.push({
+        x: clientX,
+        y: clientY
+      });
+    });
+
+    onWindowResize();
+    window.addEventListener('resize', onWindowResize);
+    ctx.fillStyle = "rgba(0, 0, 0, 1)";
+    ctx.fillRect(0, 0, wrapperWidth, wrapperHeight);
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
